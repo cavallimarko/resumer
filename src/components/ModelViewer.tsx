@@ -14,7 +14,7 @@ type ModelViewerProps = {
 
 type ViewMode = 'default' | 'wireframe' | 'normals'
 
-function Model({ url, viewMode }: { url: string; viewMode: ViewMode }) {
+function Model({ url, viewMode, setTriangleCount }: { url: string; viewMode: ViewMode; setTriangleCount: (count: number) => void }) {
   const { scene } = useGLTF(url)
   const { camera } = useThree()
   
@@ -35,6 +35,25 @@ function Model({ url, viewMode }: { url: string; viewMode: ViewMode }) {
     camera.position.set(center.x, center.y, center.z + cameraDistance)
     camera.lookAt(center.x, center.y, center.z)
   }, [scene, camera])
+  
+  // Calculate and set triangle count
+  useEffect(() => {
+    let totalTriangles = 0;
+    
+    scene.traverse((object) => {
+      // Skip wireframe overlays to avoid double-counting
+      if (object instanceof THREE.Mesh && object.name !== 'wireframeOverlay') {
+        const geometry = object.geometry;
+        if (geometry.index !== null) {
+          totalTriangles += geometry.index.count / 3;
+        } else if (geometry.attributes.position) {
+          totalTriangles += geometry.attributes.position.count / 3;
+        }
+      }
+    });
+    
+    setTriangleCount(Math.round(totalTriangles));
+  }, [scene, setTriangleCount]);
   
   // Apply the selected view mode to materials
   useEffect(() => {
@@ -306,6 +325,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
   const [error, setError] = useState<string | null>(null)
   const [isFullScreen, setIsFullScreen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('default')
+  const [triangleCount, setTriangleCount] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
@@ -409,7 +429,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
       <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
         <Suspense fallback={null}>
           <Center>
-            <Model url={modelUrl} viewMode={viewMode} />
+            <Model url={modelUrl} viewMode={viewMode} setTriangleCount={setTriangleCount} />
           </Center>
           <Environment preset="city" />
         </Suspense>
@@ -438,6 +458,11 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
             Normals
           </button>
         </div>
+      </div>
+      
+      {/* Triangle Count Display */}
+      <div className="absolute bottom-4 left-4 bg-white bg-opacity-70 px-2 py-1 rounded text-xs font-mono">
+        {triangleCount.toLocaleString()} triangles
       </div>
       
       <button
