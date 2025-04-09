@@ -12,7 +12,7 @@ type ModelViewerProps = {
   height?: number
 }
 
-type ViewMode = 'default' | 'wireframe' | 'normals'
+type ViewMode = 'default' | 'wireframe' | 'normals' | 'normalMap' | 'roughnessMap' | 'metalnessMap' | 'aoMap' | 'emissiveMap'
 
 function Model({ url, viewMode, setTriangleCount }: { url: string; viewMode: ViewMode; setTriangleCount: (count: number) => void }) {
   const { scene } = useGLTF(url)
@@ -293,12 +293,136 @@ function Model({ url, viewMode, setTriangleCount }: { url: string; viewMode: Vie
         // Apply the normal material
         parentObject.material = parentObject.userData.normalMaterial;
       }
-    } else {
-      // Restore the original material when not in normals mode
+    } else if (mode === 'normalMap') {
       const parentObject = material.userData.parentObject;
-      if (parentObject && 
-          parentObject.userData.originalMaterial &&
-          parentObject.material instanceof THREE.MeshNormalMaterial) {
+      
+      if (parentObject && parentObject instanceof THREE.Mesh) {
+        // Only apply to materials that have normal maps
+        if (material instanceof THREE.MeshStandardMaterial && material.normalMap) {
+          // Store the original material if not already stored
+          if (!parentObject.userData.originalMaterial) {
+            parentObject.userData.originalMaterial = parentObject.material;
+          }
+          
+          // Create a new material that only shows the normal map
+          // Use a custom shader material to enhance the blue appearance
+          const normalMapMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+              normalMap: { value: material.normalMap }
+            },
+            vertexShader: `
+              varying vec2 vUv;
+              void main() {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              uniform sampler2D normalMap;
+              varying vec2 vUv;
+              void main() {
+                vec4 normalColor = texture2D(normalMap, vUv);
+                // Enhance the blue channel to make it more prominent
+                normalColor.b = normalColor.b * 1.5;
+                // Adjust overall brightness
+                normalColor.rgb = normalColor.rgb * 1.2;
+                gl_FragColor = normalColor;
+              }
+            `
+          });
+          
+          // Store the normal map material
+          parentObject.userData.normalMapMaterial = normalMapMaterial;
+          
+          // Apply the normal map material
+          parentObject.material = normalMapMaterial;
+        }
+      }
+    } else if (mode === 'roughnessMap' || mode === 'metalnessMap' || mode === 'aoMap' || mode === 'emissiveMap') {
+      const parentObject = material.userData.parentObject;
+      
+      if (parentObject && parentObject instanceof THREE.Mesh) {
+        // Only apply to MeshStandardMaterial which supports these maps
+        if (material instanceof THREE.MeshStandardMaterial) {
+          // Get the appropriate map based on the mode
+          let map = null;
+          let useShader = false;
+          let channel = '';
+          
+          if (mode === 'roughnessMap' && material.roughnessMap) {
+            map = material.roughnessMap;
+            useShader = true;
+            channel = 'g'; // Roughness is often stored in green channel
+          } else if (mode === 'metalnessMap' && material.metalnessMap) {
+            map = material.metalnessMap;
+            useShader = true;
+            channel = 'b'; // Metalness is often stored in blue channel
+          } else if (mode === 'aoMap' && material.aoMap) {
+            map = material.aoMap;
+          } else if (mode === 'emissiveMap' && material.emissiveMap) {
+            map = material.emissiveMap;
+          }
+          
+          // Only proceed if we have a map to display
+          if (map) {
+            // Store the original material if not already stored
+            if (!parentObject.userData.originalMaterial) {
+              parentObject.userData.originalMaterial = parentObject.material;
+            }
+            
+            let mapMaterial;
+            
+            if (useShader) {
+              // Use a shader material for roughness and metalness to extract specific channels
+              mapMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                  mapTexture: { value: map }
+                },
+                vertexShader: `
+                  varying vec2 vUv;
+                  void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                  }
+                `,
+                fragmentShader: `
+                  uniform sampler2D mapTexture;
+                  varying vec2 vUv;
+                  void main() {
+                    vec4 texColor = texture2D(mapTexture, vUv);
+                    float channelValue = texColor.${channel};
+                    
+                    // Create a grayscale visualization with enhanced contrast
+                    gl_FragColor = vec4(channelValue, channelValue, channelValue, 1.0);
+                  }
+                `
+              });
+            } else {
+              // Use basic material for other maps
+              mapMaterial = new THREE.MeshBasicMaterial({
+                map: map,
+                wireframe: false
+              });
+            }
+            
+            // Store the map material with a unique key based on the mode
+            parentObject.userData[`${mode}Material`] = mapMaterial;
+            
+            // Apply the map material
+            parentObject.material = mapMaterial;
+          }
+        }
+      }
+    } else {
+      // Restore the original material when not in special modes
+      const parentObject = material.userData.parentObject;
+      if (parentObject && parentObject.userData.originalMaterial &&
+          (parentObject.material instanceof THREE.MeshNormalMaterial || 
+           parentObject.userData.normalMapMaterial === parentObject.material ||
+           parentObject.userData.roughnessMapMaterial === parentObject.material ||
+           parentObject.userData.metalnessMapMaterial === parentObject.material ||
+           parentObject.userData.aoMapMaterial === parentObject.material ||
+           parentObject.userData.emissiveMapMaterial === parentObject.material)) {
         parentObject.material = parentObject.userData.originalMaterial;
       }
     }
@@ -437,7 +561,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
       </Canvas>
       
       {/* Control Panel */}
-      <div className="absolute top-4 left-4 bg-white bg-opacity-70 p-2 rounded shadow-md">
+      <div className="absolute top-4 left-4 bg-white bg-opacity-70 p-2 rounded shadow-md max-h-[80%] overflow-y-auto">
         <div className="flex flex-col space-y-2">
           <button
             onClick={() => setViewMode('default')}
@@ -456,6 +580,36 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
             className={`px-2 py-1 text-sm rounded ${viewMode === 'normals' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
           >
             Normals
+          </button>
+          <button
+            onClick={() => setViewMode('normalMap')}
+            className={`px-2 py-1 text-sm rounded ${viewMode === 'normalMap' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+          >
+            Normal Map
+          </button>
+          <button
+            onClick={() => setViewMode('roughnessMap')}
+            className={`px-2 py-1 text-sm rounded ${viewMode === 'roughnessMap' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+          >
+            Roughness Map
+          </button>
+          <button
+            onClick={() => setViewMode('metalnessMap')}
+            className={`px-2 py-1 text-sm rounded ${viewMode === 'metalnessMap' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+          >
+            Metalness Map
+          </button>
+          <button
+            onClick={() => setViewMode('aoMap')}
+            className={`px-2 py-1 text-sm rounded ${viewMode === 'aoMap' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+          >
+            AO Map
+          </button>
+          <button
+            onClick={() => setViewMode('emissiveMap')}
+            className={`px-2 py-1 text-sm rounded ${viewMode === 'emissiveMap' ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+          >
+            Emissive Map
           </button>
         </div>
       </div>
