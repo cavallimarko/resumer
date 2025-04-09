@@ -22,6 +22,14 @@ export function Header() {
           <li>
             <Link
               className="hover:text-black-500 transition-colors"
+              href="/bio"
+            >
+              Bio
+            </Link>
+          </li>
+          <li>
+            <Link
+              className="hover:text-black-500 transition-colors"
               href="/studio"
             >
               Sanity Studio

@@ -47,3 +47,14 @@ export const POST_QUERY =
     image
   }
 }`)
+
+// Add the bio query
+export const BIO_QUERY = 
+  defineQuery(`*[_type == "bio"][0]{
+  _id,
+  title,
+  subtitle,
+  image,
+  content,
+  skills
+}`)
