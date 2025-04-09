@@ -8,7 +8,7 @@ import * as THREE from 'three'
 import { client } from '@/sanity/lib/client'
 
 type ModelViewerProps = {
-  modelFileId: string
+  modelFileId: string | {_ref?: string; [key: string]: any}
   height?: number
 }
 
@@ -48,12 +48,17 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
       setError(null)
       
       try {
+        // Ensure we're working with a string ID
+        const id = typeof modelFileId === 'object' ? 
+          (modelFileId._ref || modelFileId.toString()) : 
+          modelFileId.toString();
+        
         // First, fetch the 3D model document by reference ID
         const modelDocument = await client.fetch(
           `*[_type == "model3d" && _id == $id][0]{
             "fileAsset": modelFile.asset->
           }`, 
-          { id: modelFileId }
+          { id }
         )
         
         // If the model or file asset doesn't exist, throw an error
@@ -61,7 +66,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
           // Try direct file asset approach as fallback
           const fileAsset = await client.fetch(
             `*[_type == "sanity.fileAsset" && _id == $id][0]`, 
-            { id: modelFileId }
+            { id }
           )
           
           if (!fileAsset || !fileAsset.url) {

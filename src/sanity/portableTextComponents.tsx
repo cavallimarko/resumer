@@ -20,17 +20,23 @@ export const components: PortableTextComponents = {
           height="400"
         />
       ) : null,
-    model3d: (props) =>
-      props.value?.modelFile?._ref ? (
+    model3d: (props) => {
+      // The value structure is different when coming from the editor vs from stored data
+      // Handle both cases safely
+      const modelRef = props.value?.modelFile?._ref || 
+                       (typeof props.value?.modelFile === 'string' ? props.value.modelFile : null);
+      
+      return modelRef ? (
         <div className="my-8">
           {props.value.caption && (
             <p className="text-sm text-gray-500 mb-2">{props.value.caption}</p>
           )}
           <ModelViewer 
-            modelFileId={props.value.modelFile._ref} 
+            modelFileId={modelRef} 
             height={props.value.height || 400} 
           />
         </div>
-      ) : null,
+      ) : null;
+    },
   },
 };

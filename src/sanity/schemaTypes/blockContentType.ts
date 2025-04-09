@@ -84,6 +84,7 @@ export const blockContentType = defineType({
           type: 'reference',
           to: [{type: 'model3d'}],
           title: '3D Model',
+          validation: Rule => Rule.required(),
         },
         {
           name: 'caption',
@@ -101,11 +102,13 @@ export const blockContentType = defineType({
       preview: {
         select: {
           title: 'caption',
-          modelTitle: 'modelFile.title',
+          modelFileRef: 'modelFile',
         },
-        prepare({ title, modelTitle }) {
+        prepare(selection) {
+          const { title, modelFileRef } = selection;
+          // More defensive check that doesn't try to access nested properties directly
           return {
-            title: title || modelTitle || 'Untitled 3D Model',
+            title: title || (modelFileRef ? '3D Model selected' : 'No Model Selected'),
             subtitle: '3D Model',
             media: CubeIcon
           }
