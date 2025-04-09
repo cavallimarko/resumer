@@ -1,5 +1,5 @@
 import {defineType, defineArrayMember} from 'sanity'
-import {ImageIcon} from '@sanity/icons'
+import {ImageIcon, CubeIcon} from '@sanity/icons'
 
 /**
  * This is the schema type for block content used in the post document type
@@ -71,6 +71,46 @@ export const blockContentType = defineType({
           title: 'Alternative Text',
         }
       ]
+    }),
+    // Add 3D model support
+    defineArrayMember({
+      name: 'model3d',
+      type: 'object',
+      title: '3D Model',
+      icon: CubeIcon,
+      fields: [
+        {
+          name: 'modelFile',
+          type: 'reference',
+          to: [{type: 'model3d'}],
+          title: '3D Model',
+        },
+        {
+          name: 'caption',
+          type: 'string',
+          title: 'Caption',
+        },
+        {
+          name: 'height',
+          type: 'number',
+          title: 'Viewer Height',
+          description: 'Height in pixels',
+          initialValue: 400,
+        }
+      ],
+      preview: {
+        select: {
+          title: 'caption',
+          modelTitle: 'modelFile.title',
+        },
+        prepare({ title, modelTitle }) {
+          return {
+            title: title || modelTitle || 'Untitled 3D Model',
+            subtitle: '3D Model',
+            media: CubeIcon
+          }
+        }
+      }
     }),
   ],
 })
