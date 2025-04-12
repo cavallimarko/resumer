@@ -171,6 +171,49 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
       
       {/* Bottom Right Controls */}
       <div className="absolute bottom-4 right-4 flex space-x-2">
+        {/* Help Button */}
+        <div className="relative group">
+          <button
+            className="bg-gray-800 bg-opacity-90 hover:bg-opacity-100 text-white p-2 rounded-full shadow transition-all transform hover:scale-110"
+            aria-label="Help"
+            title="Help"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </button>
+          
+          {/* Help Tooltip */}
+          <div className="absolute bottom-full right-0 mb-2 py-2 px-3 bg-gray-800 bg-opacity-95 rounded-lg shadow-lg text-white text-xs transform scale-0 group-hover:scale-100 transition-transform origin-bottom-right duration-150 z-10 w-auto whitespace-nowrap">
+           
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center">
+                <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="6" y="3" width="12" height="18" rx="6" stroke="currentColor" />
+                  <line x1="12" y1="7" x2="12" y2="11" stroke="currentColor" />
+                </svg>
+                <span>Zoom</span>
+              </div>
+              <div className="flex items-center">
+                <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="6" y="3" width="12" height="18" rx="6" stroke="currentColor" />
+                  <rect x="6" y="3" width="6" height="9" rx="3" fill="currentColor" fillOpacity="0.2" />
+                </svg>
+                <span>Rotate</span>
+              </div>
+              <div className="flex items-center">
+                <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="6" y="3" width="12" height="18" rx="6" stroke="currentColor" />
+                  <rect x="12" y="3" width="6" height="9" rx="3" fill="currentColor" fillOpacity="0.2" />
+                </svg>
+                <span>Pan</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Layout Toggle Button */}
         <button
           onClick={toggleLayoutMode}
