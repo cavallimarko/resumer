@@ -100,113 +100,115 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
     );
   }
   
-  return (
-    <Suspense fallback={
+  if (isLoading || !modelUrl) {
+    return (
       <div 
         className="bg-gray-100 rounded-lg flex items-center justify-center"
         style={{ height: `${height}px` }}
       >
         <div className="animate-pulse">Loading 3D model...</div>
       </div>
-    }>
-      <div 
-        ref={containerRef}
-        className={`w-full rounded-lg overflow-hidden relative ${
-          isFullScreen ? 'bg-black' : 'bg-black' 
-        }`} 
-        style={{ height: isFullScreen ? '100%' : `${height}px` }}
-      >
-        {layoutMode === 'single' ? (
-          <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-            <Suspense fallback={null}>
-              <Center>
-                <Model url={modelUrl!} viewMode={leftViewMode} setTriangleCount={setTriangleCount} isPrimary={true} /> 
-              </Center>
-              <Environment preset="city" />
-            </Suspense>
-            <OrbitControls makeDefault />
-          </Canvas>
-        ) : (
-          <SplitScreenView 
-            url={modelUrl!} 
-            leftViewMode={leftViewMode} 
-            rightViewMode={rightViewMode} 
-            setTriangleCount={setTriangleCount} 
+    );
+  }
+  
+  return (
+    <div 
+      ref={containerRef}
+      className={`w-full rounded-lg overflow-hidden relative ${
+        isFullScreen ? 'bg-black' : 'bg-black' 
+      }`} 
+      style={{ height: isFullScreen ? '100%' : `${height}px` }}
+    >
+      {layoutMode === 'single' ? (
+        <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
+          <Suspense fallback={null}>
+            <Center>
+              <Model url={modelUrl!} viewMode={leftViewMode} setTriangleCount={setTriangleCount} isPrimary={true} /> 
+            </Center>
+            <Environment preset="city" />
+          </Suspense>
+          <OrbitControls makeDefault />
+        </Canvas>
+      ) : (
+        <SplitScreenView 
+          url={modelUrl!} 
+          leftViewMode={leftViewMode} 
+          rightViewMode={rightViewMode} 
+          setTriangleCount={setTriangleCount} 
+        />
+      )}
+      
+      {/* Control Panel (Left) */}
+      <div className="absolute top-4 left-4 bg-gray-800 bg-opacity-90 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-auto"> 
+        <div className="flex flex-col space-y-2">
+          <ViewModeControls 
+            title={layoutMode === 'split' ? 'Left View' : ''} 
+            currentMode={leftViewMode} 
+            setMode={setLeftViewMode} 
+            columns={1} 
           />
-        )}
-        
-        {/* Control Panel (Left) */}
-        <div className="absolute top-4 left-4 bg-gray-800 bg-opacity-90 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-auto"> 
+        </div>
+      </div>
+      
+      {/* Control Panel (Right) - Only visible in split mode */}
+      {layoutMode === 'split' && (
+        <div className="absolute top-4 right-4 bg-gray-800 bg-opacity-90 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-auto"> 
           <div className="flex flex-col space-y-2">
             <ViewModeControls 
-              title={layoutMode === 'split' ? 'Left View' : ''} 
-              currentMode={leftViewMode} 
-              setMode={setLeftViewMode} 
+              title="Right View" 
+              currentMode={rightViewMode} 
+              setMode={setRightViewMode} 
               columns={1} 
             />
           </div>
         </div>
-        
-        {/* Control Panel (Right) - Only visible in split mode */}
-        {layoutMode === 'split' && (
-          <div className="absolute top-4 right-4 bg-gray-800 bg-opacity-90 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-auto"> 
-            <div className="flex flex-col space-y-2">
-              <ViewModeControls 
-                title="Right View" 
-                currentMode={rightViewMode} 
-                setMode={setRightViewMode} 
-                columns={1} 
-              />
-            </div>
-          </div>
-        )}
-        
-        {/* Triangle Count Display */}
-        <div className="absolute bottom-4 left-4 bg-gray-800 bg-opacity-90 px-2 py-1 rounded text-xs font-mono text-white shadow">
-          {triangleCount.toLocaleString()} triangles
-        </div>
-        
-        {/* Bottom Right Controls */}
-        <div className="absolute bottom-4 right-4 flex space-x-2">
-          {/* Layout Toggle Button */}
-          <button
-            onClick={toggleLayoutMode}
-            className="bg-gray-800 bg-opacity-90 hover:bg-opacity-100 text-white p-2 rounded-full shadow transition-all transform hover:scale-110"
-            aria-label={layoutMode === 'single' ? "Switch to split view" : "Switch to single view"}
-            title={layoutMode === 'single' ? "Switch to split view" : "Switch to single view"}
-          >
-            {layoutMode === 'single' ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <line x1="12" y1="3" x2="12" y2="21"/>
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              </svg>
-            )}
-          </button>
-
-          {/* Fullscreen Button */}
-          <button
-            onClick={toggleFullScreen}
-            className="bg-gray-800 bg-opacity-90 hover:bg-opacity-100 text-white p-2 rounded-full shadow transition-all transform hover:scale-110"
-            aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
-            title={isFullScreen ? "Exit full screen" : "Enter full screen"}
-          >
-            {isFullScreen ? (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-              </svg>
-            )}
-          </button>
-        </div>
+      )}
+      
+      {/* Triangle Count Display */}
+      <div className="absolute bottom-4 left-4 bg-gray-800 bg-opacity-90 px-2 py-1 rounded text-xs font-mono text-white shadow">
+        {triangleCount.toLocaleString()} triangles
       </div>
-    </Suspense>
+      
+      {/* Bottom Right Controls */}
+      <div className="absolute bottom-4 right-4 flex space-x-2">
+        {/* Layout Toggle Button */}
+        <button
+          onClick={toggleLayoutMode}
+          className="bg-gray-800 bg-opacity-90 hover:bg-opacity-100 text-white p-2 rounded-full shadow transition-all transform hover:scale-110"
+          aria-label={layoutMode === 'single' ? "Switch to split view" : "Switch to single view"}
+          title={layoutMode === 'single' ? "Switch to split view" : "Switch to single view"}
+        >
+          {layoutMode === 'single' ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <line x1="12" y1="3" x2="12" y2="21"/>
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            </svg>
+          )}
+        </button>
+
+        {/* Fullscreen Button */}
+        <button
+          onClick={toggleFullScreen}
+          className="bg-gray-800 bg-opacity-90 hover:bg-opacity-100 text-white p-2 rounded-full shadow transition-all transform hover:scale-110"
+          aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
+          title={isFullScreen ? "Exit full screen" : "Enter full screen"}
+        >
+          {isFullScreen ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+            </svg>
+          )}
+        </button>
+      </div>
+    </div>
   );
 }
 

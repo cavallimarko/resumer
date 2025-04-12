@@ -1,54 +1,52 @@
-import { groq } from "next-sanity";
 import { client } from "@/sanity/lib/client";
+import { sanityFetch } from "@/sanity/lib/live";
+import { BIO_QUERY, HOMEPAGE_POSTS_QUERY, CATEGORIES_QUERY } from "@/sanity/lib/queries";
 import ProjectsGrid from "@/components/ProjectsGrid";
 import { Bio } from "@/components/Bio";
-
-// Fetch all posts with their images, titles, and categories
-const postsQuery = groq`
-  *[_type == "post"] {
-    _id,
-    title,
-    slug,
-    "mainImage": mainImage.asset->url,
-    categories[]->{ title }
-  }
-`;
-
-// Get all unique categories
-const categoriesQuery = groq`
-  *[_type == "category"] {
-    _id,
-    title
-  }
-`;
-
-// Fetch bio information using the same query structure as in the Bio component
-const bioQuery = groq`
-  *[_type == "bio"][0]{
-    _id,
-    title,
-    subtitle,
-    image,
-    content,
-    skills
-  }
-`;
+import { Suspense } from "react";
 
 export default async function Page() {
-  // Fetch posts, categories, and bio
-  const posts = await client.fetch(postsQuery);
-  const categories = await client.fetch(categoriesQuery);
-  const bio = await client.fetch(bioQuery);
+  // Fetch posts and categories using client.fetch or sanityFetch
+  const { data: postsData } = await sanityFetch({ query: HOMEPAGE_POSTS_QUERY });
+  const { data: categories } = await sanityFetch({ query: CATEGORIES_QUERY });
+  
+  // Fetch bio using the predefined query from queries.ts
+  const { data: bioData } = await sanityFetch({ query: BIO_QUERY });
+
+  // Transform posts to ensure slug.current is always a string
+  const posts = postsData.map((post: any) => ({
+    ...post,
+    slug: post.slug ? { current: post.slug.current || '' } : null
+  }));
+
+  // Transform bio to match expected structure
+  const bio = bioData ? {
+    title: bioData.title || '',
+    subtitle: bioData.subtitle || '',
+    content: bioData.content || null,
+    image: bioData.image || null,
+    skills: bioData.skills || []
+  } : {
+    title: '',
+    subtitle: '',
+    content: null,
+    image: null,
+    skills: []
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto py-6">
-        <ProjectsGrid posts={posts} categories={categories} />
+        <Suspense fallback={<div>Loading projects...</div>}>
+          <ProjectsGrid posts={posts} categories={categories} />
+        </Suspense>
         
         {/* About Me Section */}
         <div className="mt-20 py-10 border-t border-gray-800">
           <h2 className="text-3xl font-bold mb-8">About Me</h2>
-          <Bio bio={bio} />
+          <Suspense fallback={<div>Loading bio...</div>}>
+            <Bio bio={bio} />
+          </Suspense>
         </div>
       </div>
     </div>

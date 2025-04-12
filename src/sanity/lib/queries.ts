@@ -58,3 +58,20 @@ export const BIO_QUERY =
   content,
   skills
 }`)
+
+// Add the homepage posts query
+export const HOMEPAGE_POSTS_QUERY = 
+  defineQuery(`*[_type == "post"] {
+    _id,
+    title,
+    slug,
+    "mainImage": mainImage.asset->url,
+    categories[]->{ title }
+  }`)
+
+// Add the categories query
+export const CATEGORIES_QUERY = 
+  defineQuery(`*[_type == "category"] {
+    _id,
+    title
+  }`)
