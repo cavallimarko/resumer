@@ -14,7 +14,7 @@ export function Post(props: NonNullable<POST_QUERYResult>) {
 
   return (
     <article className="grid lg:grid-cols-12 gap-y-12">
-      <header className="lg:col-span-12 flex flex-col gap-4 items-start">
+      <header className="lg:col-span-12 flex flex-col gap-4 items-start text-gray-200">
         <div className="flex gap-4 items-center">
           <Categories categories={categories} />
           <PublishedAt publishedAt={publishedAt} />
@@ -33,7 +33,7 @@ export function Post(props: NonNullable<POST_QUERYResult>) {
         </figure>
       ) : null}
       {body ? (
-        <div className="lg:col-span-7 lg:col-start-6 prose lg:prose-lg">
+        <div className="lg:col-span-7 lg:col-start-6 prose lg:prose-lg prose-invert text-gray-200 dark:prose-headings:text-white dark:prose-a:text-blue-300">
           <PortableText value={body} components={components} />
         </div>
       ) : null}

@@ -15,8 +15,10 @@ const {data: post} = await sanityFetch({query: POST_QUERY, params: await params}
   }
 
   return (
-    <main className="container mx-auto grid grid-cols-1 gap-6 p-12">
-      <Post {...post} />
-    </main>
+    <div className="min-h-screen bg-black text-white">
+      <main className="container mx-auto grid grid-cols-1 gap-6 p-12">
+        <Post {...post} />
+      </main>
+    </div>
   )
 }

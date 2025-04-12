@@ -115,7 +115,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
     <div 
       ref={containerRef}
       className={`w-full rounded-lg overflow-hidden relative ${
-        isFullScreen ? 'bg-black' : 'bg-gray-200' 
+        isFullScreen ? 'bg-black' : 'bg-black' 
       }`} 
       style={{ height: isFullScreen ? '100%' : `${height}px` }}
     >
@@ -139,10 +139,10 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
       )}
       
       {/* Control Panel (Left) */}
-      <div className="absolute top-4 left-4 bg-white bg-opacity-70 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-28"> {/* Adjusted width and max-height */}
+      <div className="absolute top-4 left-4 bg-gray-800 bg-opacity-90 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-auto"> 
         <div className="flex flex-col space-y-2">
           <ViewModeControls 
-            title={layoutMode === 'split' ? 'Left View' : ''} // Add title in split mode
+            title={layoutMode === 'split' ? 'Left View' : ''} 
             currentMode={leftViewMode} 
             setMode={setLeftViewMode} 
             columns={1} 
@@ -152,10 +152,10 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
       
       {/* Control Panel (Right) - Only visible in split mode */}
       {layoutMode === 'split' && (
-        <div className="absolute top-4 right-4 bg-white bg-opacity-70 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-28"> {/* Adjusted width and max-height */}
+        <div className="absolute top-4 right-4 bg-gray-800 bg-opacity-90 p-2 rounded shadow-md max-h-[calc(100%-5rem)] overflow-y-auto w-auto"> 
           <div className="flex flex-col space-y-2">
             <ViewModeControls 
-              title="Right View" // Add title
+              title="Right View" 
               currentMode={rightViewMode} 
               setMode={setRightViewMode} 
               columns={1} 
@@ -165,7 +165,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
       )}
       
       {/* Triangle Count Display */}
-      <div className="absolute bottom-4 left-4 bg-white bg-opacity-70 px-2 py-1 rounded text-xs font-mono shadow">
+      <div className="absolute bottom-4 left-4 bg-gray-800 bg-opacity-90 px-2 py-1 rounded text-xs font-mono text-white shadow">
         {triangleCount.toLocaleString()} triangles
       </div>
       
@@ -174,7 +174,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
         {/* Layout Toggle Button */}
         <button
           onClick={toggleLayoutMode}
-          className="bg-white bg-opacity-70 hover:bg-opacity-100 text-gray-800 p-2 rounded-full shadow transition-all transform hover:scale-110" // Adjusted hover effect
+          className="bg-gray-800 bg-opacity-90 hover:bg-opacity-100 text-white p-2 rounded-full shadow transition-all transform hover:scale-110"
           aria-label={layoutMode === 'single' ? "Switch to split view" : "Switch to single view"}
           title={layoutMode === 'single' ? "Switch to split view" : "Switch to single view"}
         >
@@ -193,7 +193,7 @@ export function ModelViewer({ modelFileId, height = 400 }: ModelViewerProps) {
         {/* Fullscreen Button */}
         <button
           onClick={toggleFullScreen}
-          className="bg-white bg-opacity-70 hover:bg-opacity-100 text-gray-800 p-2 rounded-full shadow transition-all transform hover:scale-110" // Adjusted hover effect
+          className="bg-gray-800 bg-opacity-90 hover:bg-opacity-100 text-white p-2 rounded-full shadow transition-all transform hover:scale-110"
           aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
           title={isFullScreen ? "Exit full screen" : "Enter full screen"}
         >
