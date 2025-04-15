@@ -10,6 +10,14 @@ This is a full-featured [Sanity.io](https://sanity.io) and [Next.js](https://nex
 - **Responsive Design**: Works on desktop and mobile devices
 - **Bio/About Page**: Showcase your skills and experience
 
+
+https://github.com/user-attachments/assets/969ceb6c-56d6-460c-a7bd-409064f34be5
+
+
+https://github.com/user-attachments/assets/a76d2a2d-8f75-4177-a924-84ba1da83221
+
+
+
 ## Setup Instructions
 
 ### 1. Prerequisites
