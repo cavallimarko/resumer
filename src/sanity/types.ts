@@ -46,6 +46,46 @@ export type Geopoint = {
   alt?: number;
 };
 
+export type Header = {
+  _id: string;
+  _type: "header";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  title?: string;
+  subtitle?: string;
+  mainNavigation?: Array<{
+    title?: string;
+    linkType?: "internal" | "external";
+    internalLink?: {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "post";
+    } | {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "category";
+    } | {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "bio";
+    } | {
+      _ref: string;
+      _type: "reference";
+      _weak?: boolean;
+      [internalGroqTypeReferenceTo]?: "model3d";
+    };
+    url?: string;
+    isExternal?: boolean;
+    _type: "link";
+    _key: string;
+  }>;
+  showStudioLink?: boolean;
+};
+
 export type Bio = {
   _id: string;
   _type: "bio";
@@ -402,7 +442,7 @@ export type SanityImageMetadata = {
   isOpaque?: boolean;
 };
 
-export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | Geopoint | Bio | Post | Author | Category | BlockContent | Model3d | SanityFileAsset | Slug | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata;
+export type AllSanitySchemaTypes = SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | Geopoint | Header | Bio | Post | Author | Category | BlockContent | Model3d | SanityFileAsset | Slug | SanityImageCrop | SanityImageHotspot | SanityImageAsset | SanityAssetSourceData | SanityImageMetadata;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./src/app/(frontend)/bio/page.tsx
 // Variable: bioQuery
@@ -718,6 +758,32 @@ export type CATEGORIES_QUERYResult = Array<{
   _id: string;
   title: string | null;
 }>;
+// Variable: HEADER_QUERY
+// Query: *[_type == "header"][0]{    title,    subtitle,    mainNavigation[]{      title,      linkType,      url,      isExternal,      internalLink->{        _type,        "slug": slug.current      }    },    showStudioLink  }
+export type HEADER_QUERYResult = {
+  title: string | null;
+  subtitle: string | null;
+  mainNavigation: Array<{
+    title: string | null;
+    linkType: "external" | "internal" | null;
+    url: string | null;
+    isExternal: boolean | null;
+    internalLink: {
+      _type: "bio";
+      slug: null;
+    } | {
+      _type: "category";
+      slug: string | null;
+    } | {
+      _type: "model3d";
+      slug: string | null;
+    } | {
+      _type: "post";
+      slug: string | null;
+    } | null;
+  }> | null;
+  showStudioLink: boolean | null;
+} | null;
 
 // Query TypeMap
 import "@sanity/client";
@@ -730,5 +796,6 @@ declare module "@sanity/client" {
     "*[_type == \"bio\"][0]{\n  _id,\n  title,\n  subtitle,\n  image,\n  content,\n  skills\n}": BIO_QUERYResult;
     "*[_type == \"post\"] {\n    _id,\n    title,\n    slug,\n    \"mainImage\": mainImage.asset->url,\n    categories[]->{ title }\n  }": HOMEPAGE_POSTS_QUERYResult;
     "*[_type == \"category\"] {\n    _id,\n    title\n  }": CATEGORIES_QUERYResult;
+    "*[_type == \"header\"][0]{\n    title,\n    subtitle,\n    mainNavigation[]{\n      title,\n      linkType,\n      url,\n      isExternal,\n      internalLink->{\n        _type,\n        \"slug\": slug.current\n      }\n    },\n    showStudioLink\n  }": HEADER_QUERYResult;
   }
 }

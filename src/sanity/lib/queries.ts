@@ -75,3 +75,21 @@ export const CATEGORIES_QUERY =
     _id,
     title
   }`)
+
+// Add the header query
+export const HEADER_QUERY = 
+  defineQuery(`*[_type == "header"][0]{
+    title,
+    subtitle,
+    mainNavigation[]{
+      title,
+      linkType,
+      url,
+      isExternal,
+      internalLink->{
+        _type,
+        "slug": slug.current
+      }
+    },
+    showStudioLink
+  }`)
